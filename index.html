@@ -113,6 +113,7 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            z-index: 2002;
         }
 
         .logo img {
@@ -146,6 +147,36 @@
         .nav-links button.active {
             color: var(--text-primary);
             background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Mobile Menu Button & Overlay (Hidden on Desktop) */
+        .mobile-menu-btn {
+            display: none;
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 4px;
+            z-index: 2002;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
         }
 
         /* Sections */
@@ -539,31 +570,50 @@
         @media (max-width: 768px) {
             /* Navigation */
             nav {
-                height: auto;
-                padding: 10px 0;
-                border-radius: 20px;
+                height: 64px;
+                padding: 0;
             }
             .nav-container {
-                flex-direction: column;
-                gap: 10px;
-                padding: 0 16px;
+                flex-direction: row;
+                justify-content: space-between;
+                padding: 0 20px;
             }
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            /* Sidebar Transformation */
             .nav-links {
-                width: 100%;
-                overflow-x: auto;
-                white-space: nowrap;
-                padding-bottom: 8px;
+                position: fixed;
+                top: 0;
+                right: -300px;
+                width: 250px;
+                height: 100vh;
+                background: rgba(20, 20, 20, 0.98);
+                backdrop-filter: blur(20px);
+                border-left: 1px solid var(--border-color);
+                flex-direction: column;
                 justify-content: flex-start;
-                -webkit-overflow-scrolling: touch;
-                scrollbar-width: none; /* Firefox */
+                padding: 80px 24px 24px 24px;
+                transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 2000;
+                overflow-y: auto;
             }
-            .nav-links::-webkit-scrollbar {
-                display: none; /* Chrome/Safari */
+            .nav-links.open {
+                right: 0;
+            }
+            .nav-links button {
+                width: 100%;
+                text-align: left;
+                padding: 16px;
+                font-size: 1.1rem;
+                border-radius: 12px;
+                margin-bottom: 4px;
             }
             
             /* Body & Layout adjustments */
             main {
-                margin-top: 140px; /* offset for taller mobile nav */
+                margin-top: 100px;
             }
             section {
                 padding: 40px 20px 80px 20px;
@@ -631,7 +681,14 @@
                 <img src="https://github.com/Invictus360/findex-search/blob/main/splash_icon.png?raw=true">
                 FindeX
             </div>
-            <div class="nav-links">
+            <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+            </button>
+            <div class="nav-links" id="navLinks">
                 <button class="active" onclick="showSection('overview')">Overview</button>
                 <button onclick="showSection('about')">About</button>
                 <button onclick="showSection('features')">Features</button>
@@ -642,6 +699,8 @@
             </div>
         </div>
     </nav>
+    
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
     <div class="hai">
         <h1>h</h1>
@@ -1263,6 +1322,17 @@ Search Pipeline:
     </footer>
 
     <script>
+        function toggleSidebar() {
+            const nav = document.getElementById('navLinks');
+            const overlay = document.getElementById('sidebarOverlay');
+            nav.classList.toggle('open');
+            if (nav.classList.contains('open')) {
+                overlay.classList.add('active');
+            } else {
+                overlay.classList.remove('active');
+            }
+        }
+
         function showSection(sectionId) {
             // Update Navigation UI
             const navButtons = document.querySelectorAll('.nav-links button');
@@ -1282,6 +1352,12 @@ Search Pipeline:
 
             const activeSection = document.getElementById(sectionId);
             if (activeSection) activeSection.classList.add('active');
+            
+            // Close mobile sidebar if it's open
+            if (window.innerWidth <= 768) {
+                document.getElementById('navLinks').classList.remove('open');
+                document.getElementById('sidebarOverlay').classList.remove('active');
+            }
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
